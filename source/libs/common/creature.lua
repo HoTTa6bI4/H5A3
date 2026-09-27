@@ -1,3 +1,5 @@
+CREATURES_COUNT = 3000
+
 ---@class _Creature
 ---@field id CreatureID
 ---@field is_generatable nil|1
@@ -90,5 +92,11 @@ function Creature(id)
 
     return _creature
 end
+
+CREATURES_ITERATOR = Iterator(range_generator.FromTop(1, CREATURES_COUNT - 1))
+    .Map(function (item)
+        local result = Creature(item)
+        return result
+    end)
 
 __end_import()

@@ -23,5 +23,9 @@ import("@common/random")
 import("@common/iterators")
 
 import("@common/creature")
+import("@common/artifact")
+
+import("@adv_map/army")
+import("@adv_map/fight_generation")
 
 __end_import()

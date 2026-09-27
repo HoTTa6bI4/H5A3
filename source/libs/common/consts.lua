@@ -12,6 +12,8 @@ TOWN_RENEGADES = 9
 
 TOWN_NECROPOLIS = TOWN_NECROMANCY
 
+__difficulty = GetDifficulty()
+
 RACE_COLORS = 
 {
 	[0] = "/Text/Default/RaceColors/Heaven.txt";

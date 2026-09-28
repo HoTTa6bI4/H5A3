@@ -31,6 +31,8 @@ CREATURES_COUNT = 3000
 ---@field known_spells table<SpellType, MasteryLevel>
 ---@field HasAbility function(ability: CreatureAbilityType): 1|nil
 ---@field HasSpell function(spell: SpellType): 1|nil
+---@field IsShooter function(): 1|nil
+---@field IsCaster function(): 1|nil
 
 ---@alias Creature _Creature|DefaultClassBody
 
@@ -87,6 +89,20 @@ function Creature(id)
     ---@nodiscard
     function _creature:HasAbility(ability)
         local result = contains(self.abilities, ability)
+        return result
+    end
+
+    --- Определяет, является ли существо кастером
+    ---@return 1|nil|boolean
+    function _creature:IsCaster()
+        local result = self.mana ~= 0
+        return result
+    end
+
+    --- Определяет, является ли существо стрелком
+    ---@return 1|nil|boolean
+    function _creature:IsShooter()
+        local result = self.range ~= 0
         return result
     end
 

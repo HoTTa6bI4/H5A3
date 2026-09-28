@@ -54,7 +54,7 @@ function GeneratedCombat(generation_model)
                 result[i] = ArmySlot(creature.id, ceil(stack_power / creature.power))
             else
                 local count = self.generation_model.army_base_count_data[i][__difficulty]
-                if self.generation_model.army_counts_grow then
+                if self.generation_model.army_counts_grow and length(self.generation_model.army_counts_grow) > 0 then
                     count = count + self.generation_model.army_counts_grow[i][__difficulty] * week
                 end
                 result[i] = ArmySlot(creature.id, count)
@@ -104,6 +104,7 @@ function GeneratedCombat(generation_model)
                 function (art)
                     local used_slots = %used_slots
                     local weight = %weight
+                    local result = %result
                     if used_slots[art.slot] then
                         return nil
                     end

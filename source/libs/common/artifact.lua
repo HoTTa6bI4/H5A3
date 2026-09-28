@@ -33,7 +33,7 @@ function Artifact(id)
     return _artifact
 end
 
-ARTIFACTS_ITERATOR = Iterator(range_generator(1, ARTIFACT_COUNT - 1))
+ARTIFACTS_ITERATOR = Iterator(range_generator.FromTop(1, ARTIFACT_COUNT - 1))
     .Map(function (item)
         local result = Artifact(item)
         return result

@@ -36,6 +36,8 @@ CREATURES_COUNT = 3000
 
 ---@alias Creature _Creature|DefaultClassBody
 
+CREATURES_DATA = {}
+
 ---@param id CreatureID
 ---@return Creature
 ---@nodiscard
@@ -106,6 +108,7 @@ function Creature(id)
         return result
     end
 
+    CREATURES_DATA[id] = _creature
     return _creature
 end
 
@@ -114,5 +117,6 @@ CREATURES_ITERATOR = Iterator(range_generator.FromTop(1, CREATURES_COUNT - 1))
         local result = Creature(item)
         return result
     end)
+
 
 __end_import()

@@ -244,6 +244,7 @@ function StartAdvMapDialog(index, callback)
 end
 
 --- Запускает сражение с заданными параметрами
+---@deprecated
 ---@param hero string скриптовое имя героя
 ---@param enemy string|nil скриптовое имя героя противника(nil - бой против нейтралов)
 ---@param stack_count integer число стеков

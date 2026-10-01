@@ -27,7 +27,10 @@
 		],
 		"Lua.diagnostics.libraryFiles": "Enable",
 		"Lua.diagnostics.globals": [
-			"CREATURES_GENERATED_TABLE"
+			"CREATURES_GENERATED_TABLE",
+			"ARTIFACTS_GENERATED_TABLE",
+			"HEROES_GENERATED_TABLE",
+        	"SPELLS_GENERATED_TABLE"
 		],
 		"Lua.workspace.library": [
 			"${workspaceFolder:Mods}/source",

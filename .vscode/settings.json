@@ -1,6 +1,8 @@
 {
     "Lua.diagnostics.globals": [
         "CREATURES_GENERATED_TABLE",
-        "ARTIFACTS_GENERATED_TABLE"
+        "ARTIFACTS_GENERATED_TABLE",
+        "HEROES_GENERATED_TABLE",
+        "SPELLS_GENERATED_TABLE"
     ]
 }

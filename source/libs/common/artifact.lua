@@ -12,6 +12,8 @@ ARTIFACT_COUNT = 500
 
 ---@alias Artifact _Artifact | DefaultClassBody
 
+ARTIFACTS_DATA = {}
+
 ---@param id ArtifactID
 ---@return Artifact
 function Artifact(id)
@@ -30,6 +32,7 @@ function Artifact(id)
     _artifact.class = data.type
     _artifact.icon = data.icon
 
+    ARTIFACTS_DATA[id] = _artifact
     return _artifact
 end
 

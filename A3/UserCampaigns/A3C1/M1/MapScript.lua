@@ -31,4 +31,15 @@ print("T2: ", t2)
 
 ---@type ArmySlot[]
 local stacks = c1m1_fight1:GenerateArmySlots()
-print("Stack: ", stacks[1].creature.id)
+-- StartCombat(GetPlayerHeroes(1)[0], nil, stacks, 1)
+
+local heroes = HEROES_ITERATOR.FilterMap(
+---@param item Hero
+function (item)
+    if item.town == TOWN_DUNGEON then
+        return item.id
+    end
+    return nil
+end).Collect()
+
+print("Dungeon heroes: ", heroes)

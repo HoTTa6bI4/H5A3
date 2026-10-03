@@ -54,10 +54,14 @@ function MiniDialog(model)
         local answers = {"/Text/next.txt", "/Text/back.txt"}
         self.model.selected_answer = MINI_DIALOG_UNDEFINED_ANSWER
 
-        if self.model.current_step == self.model.steps_count then
-            answers = {"/Text/finish.txt", "/Text/back.txt"}
-        elseif self.model.current_step == 1 then
-            answers[2] = nil
+        if self.model.steps_count == 1 then 
+            answers = {"/Text/finish.txt", nil}
+        else 
+            if self.model.current_step == self.model.steps_count then
+                answers = {"/Text/finish.txt", "/Text/back.txt"}
+            elseif self.model.current_step == 1 then
+                answers[2] = nil
+            end
         end
 
         ---@type MiniDialogStep
@@ -114,8 +118,14 @@ function MiniDialog(model)
         local color_info = rtext("<color="..speaker_data.color..">")
         local text = { text_path; color_info = color_info, speaker_name = name }
 
+        local callback_name = "mini_dialog_callback"
+        callback_body = function(player, answer)
+            %self:Callback(player, answer)
+        end
+        parse(callback_name..[[ = callback_body]])()
+
         ---@diagnostic disable-next-line
-        TalkBoxForPlayers(GetPlayerFilter(PLAYER_1), icon.."#xpointer(/Texture)", nil, text, nil, 'Callback', 1, nil, 0, 0, answers[1], answers[2], nil, nil, nil)
+        TalkBoxForPlayers(GetPlayerFilter(PLAYER_1), icon.."#xpointer(/Texture)", nil, text, nil, callback_name, 1, nil, 0, 0, answers[1], answers[2], nil, nil, nil)
         
         while self.model.selected_answer == MINI_DIALOG_UNDEFINED_ANSWER do
             sleep()

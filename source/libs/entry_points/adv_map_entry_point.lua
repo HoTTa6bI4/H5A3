@@ -31,5 +31,6 @@ import("@common/spell")
 
 import("@adv_map/combat")
 import("@adv_map/fight_generation")
+import("@adv_map/mini_dialog")
 
 __end_import()

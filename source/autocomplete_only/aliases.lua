@@ -1,0 +1,1 @@
+---@alias NumberOrString number|string

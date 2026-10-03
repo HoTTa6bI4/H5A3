@@ -1,102 +1,155 @@
+---@alias MiniDialogSpeakerType
+---|`SPEAKER_TYPE_HERO`
+---|`SPEAKER_TYPE_CREATURE`
 SPEAKER_TYPE_HERO = 1
 SPEAKER_TYPE_CREATURE = 2
 
-MiniDialog = {}
-MiniDialog.Sets = {}
-MiniDialog.Paths = {}
-MiniDialog.answer_for_player = {[PLAYER_1] = 6, [PLAYER_2] = 6, [PLAYER_3] = 6, [PLAYER_4] = 6, [PLAYER_5] = 6, [PLAYER_6] = 6, [PLAYER_7] = 6, [PLAYER_8] = 6}
+MINI_DIALOG_UNDEFINED_ANSWER = 3
 
-doFile(GetMapDataPath().."dialogs_paths.lua")
+---@class MiniDialogSpeakerModel
+---@field type MiniDialogSpeakerType
+---@field color string
 
-MiniDialog.Start =
----@param name string
----@param alt_set string|nil
----@param player PlayerID|number|nil
----@param speakers_replace table<string|number, string|number>|nil
-function(name, alt_set, player, speakers_replace)
-  player = player or PLAYER_1
-  alt_set = alt_set or "main"
-  local dialog_file = MiniDialog.Paths[name].."/script.lua"
-  doFile(dialog_file)
-  while not MiniDialog.Sets[name] do
-    sleep()
-  end
-  local steps_count = -1
-  for step, _ in MiniDialog.Sets[name] do
-    steps_count = steps_count + 1
-  end
-  --
-  MiniDialog.Step(MiniDialog.Paths[name].."/", MiniDialog.Sets[name], 0, steps_count, alt_set, player)
-end
+---@class MiniDialogStep
+---@field speakers NumberOrString [] Список возможных персонажей реплики
+---@field labels string[] Список вариантов реплики по меткам
 
-MiniDialog.Step =
----@param path string
----@param set string
----@param curr_step number
----@param max_step number
----@param alt_set string|nil
----@param player PlayerID|number
----@param speakers_replace table<string|number, string|number>|nil
-function(path, set, curr_step, max_step, alt_set, player, speakers_replace)
-  local answers = {"/Text/next.txt", "/Text/back.txt"}
-  MiniDialog.answer_for_player[player] = 6
-  if curr_step == 0 then
-    answers[2] = nil
-  elseif curr_step == max_step then
-    answers = {"/Text/finish.txt", "/Text/back.txt"}
-  end
-  local saved_state = curr_step
-  local curr_set, text
-  if alt_set and set[curr_step.."_"..alt_set] then
-    curr_set = set[curr_step.."_"..alt_set]
-    text = path..curr_step.."_"..alt_set..".txt"
-  else
-    curr_set = set[curr_step.."_main"]
-    text = path..curr_step.."_main.txt"
-  end
-  if speakers_replace and speakers_replace[curr_set.speaker] then
-    curr_set.speaker = speakers_replace[curr_set.speaker]
-  end
-  local icon = ""
-  if curr_set.speaker_type == SPEAKER_TYPE_HERO then
-    icon = Hero.Params.Icon(curr_set.speaker) ---@diagnostic disable-line
-  else
-    icon = Creature.Params.Icon(curr_set.speaker)
-  end
-  if string.spread(icon)[1] ~= '/' then
-    icon = '/'..icon
-  end
-  TalkBoxForPlayers(GetPlayerFilter(player), icon, nil,
-                 text, nil,
-                 'MiniDialog.Callback', 1,
-                 nil,
-                 0, 0,
-                 answers[1],
-                 answers[2],
-                 nil,
-                 nil,
-                 nil)
-  while MiniDialog.answer_for_player[player] == 6 do
-    sleep()
-  end
-  local ans = MiniDialog.answer_for_player[player]
-  if ans < 1 then
-    return
-  else
-    if ans == 1 then
-      if saved_state == max_step then
-        return
-      else
-        saved_state = saved_state + 1
-      end
-    else
-      saved_state = saved_state - 1
+---@class MiniDialogModel
+---@field path string Основной путь диалога
+---@field steps_count number Число реплик
+---@field current_step number Текущая реплика
+---@field steps MiniDialogStep[] Данные о репликах
+---@field speakers_data table<string|number, MiniDialogSpeakerModel> Данные о персонажах
+---@field selected_answer number? Выбранный ответ в текущей реплике
+---@field label string? Активная метка
+---@field priority_speaker string|number|nil? 
+
+---@class _MiniDialog
+---@field model MiniDialogModel
+---@field Start function(label?: string|nil, priority_speaker: string|number)
+
+---@alias MiniDialog _MiniDialog | DefaultClassBody
+
+---@param model MiniDialogModel
+---@return MiniDialog
+function MiniDialog(model)
+    ---@type MiniDialog
+    local _mini_dialog = Class {
+        typename = "MiniDialog" 
+    }
+
+    _mini_dialog.model = model
+
+    ---@param player PlayerID
+    ---@param selected_answer number
+    ---@private
+    ---@diagnostic disable-next-line
+    function _mini_dialog:Callback(player, selected_answer)
+        self.model.selected_answer = selected_answer
     end
-  end
-  MiniDialog.Step(path, set, saved_state, max_step, alt_set, player)
+
+    ---@private
+    ---@diagnostic disable-next-line
+    function _mini_dialog:ShowCurrentStep()
+        local answers = {"/Text/next.txt", "/Text/back.txt"}
+        self.model.selected_answer = MINI_DIALOG_UNDEFINED_ANSWER
+
+        if self.model.current_step == self.model.steps_count then
+            answers = {"/Text/finish.txt", "/Text/back.txt"}
+        elseif self.model.current_step == 1 then
+            answers[2] = nil
+        end
+
+        ---@type MiniDialogStep
+        local step_data = self.model.steps[self.model.current_step]
+        local text_path
+        if self.model.label ~= "main" then
+            if contains(step_data.labels, self.model.label) then
+                text_path = self.model.path.."/"..(self.model.current_step - 1).."_"..self.model.label..".txt"
+            else
+                text_path = self.model.path.."/"..(self.model.current_step - 1).."_main.txt"
+            end
+        else
+            text_path = self.model.path.."/"..(self.model.current_step - 1).."_main.txt"
+        end
+
+        local speaker
+        if self.model.priority_speaker then
+            speaker = Iterator(step_data.speakers).First(
+              function (item)
+                  if item == %self.model.priority_speaker then
+                      return item
+                  end
+                  return nil
+              end)
+        else
+            if length(step_data.speakers) == 1 then
+                speaker = step_data.speakers[1]
+            else
+                speaker = Random.FromTable(step_data.speakers)
+            end
+        end
+
+        ---@type MiniDialogSpeakerModel
+        local speaker_data = self.model.speakers_data[speaker]
+
+        local icon 
+        local name
+        if speaker_data.type == SPEAKER_TYPE_HERO then
+            ---@type Hero
+            local hero_data = HEROES_DATA[speaker]
+            icon = hero_data.icon
+            name = hero_data.name
+        else
+            ---@type Creature
+            local creature_data = CREATURES_DATA[speaker]
+            icon = creature_data.icon
+            name = creature_data.name
+        end
+
+        if string.spread(icon)[1] ~= '/' then
+            icon = '/'..icon
+        end
+
+        local color_info = rtext("<color="..speaker_data.color..">")
+        local text = { text_path; color_info = color_info, speaker_name = name }
+
+        ---@diagnostic disable-next-line
+        TalkBoxForPlayers(GetPlayerFilter(PLAYER_1), icon.."#xpointer(/Texture)", nil, text, nil, 'Callback', 1, nil, 0, 0, answers[1], answers[2], nil, nil, nil)
+        
+        while self.model.selected_answer == MINI_DIALOG_UNDEFINED_ANSWER do
+            sleep()
+        end
+
+        if self.model.selected_answer < 1 then
+            return
+        else
+            if self.model.selected_answer == 1 then
+                if self.model.current_step == self.model.steps_count then
+                    return
+                else
+                    self.model.current_step = self.model.current_step + 1
+                end
+            else
+                self.model.current_step = self.model.current_step - 1
+            end
+        end
+
+        self:ShowCurrentStep()
+    end
+
+    ---@param label string|nil
+    ---@param priority_speaker string|number|nil
+    function _mini_dialog:Start(label, priority_speaker)
+        if label then
+            self.model.label = label
+        end
+        self.model.priority_speaker = priority_speaker
+
+        self:ShowCurrentStep()
+    end
+
+    return _mini_dialog
 end
 
-MiniDialog.Callback =
-function(player, answer)
-  MiniDialog.answer_for_player[player] = answer
-end
+__end_import()

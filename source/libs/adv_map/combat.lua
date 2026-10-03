@@ -14,7 +14,7 @@ function ArmySlot(id, amount)
         typename = "ArmySlot",
     }
 
-    _army_slot.creature = Creature(id)
+    _army_slot.creature = CREATURES_DATA(id)
     _army_slot.amount = amount
 
     function _army_slot:IsEmpty()

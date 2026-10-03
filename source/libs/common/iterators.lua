@@ -26,7 +26,9 @@
 ---@field MinBy IteratorSingleItemSelector Возвращает единственный элемент итератора, имеющий минимальное значение по заданному условию
 ---@field Chunks IteratorSelector 
 
----@overload fun(items: any[]): Iterator
+---@generic T: any
+---@param items T[]
+---@overload fun(items: T[]): Iterator
 Iterator = function (items)
     local it = {
         items = items,
